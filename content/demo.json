@@ -1,0 +1,66 @@
+{
+  "iud": {
+    "steps": [
+      { "user": "I am worried about the pain",
+        "bot": "That is a common worry, and it makes sense to plan for it. The library says a numbing shot at the cervix lowered pain in many studies, and numbing cream or spray helped some people. Would you like to hear about stronger choices, like medicine to relax?" },
+      { "user": "Can I be asleep for it?",
+        "bot": "Some clinics offer medicine to relax, or being fully asleep. Both take more planning. You may need a ride home and no food first, and some clinics send you to a different place. Do you want to ask your provider about that?" },
+      { "user": "I want to be able to stop if I need to",
+        "bot": "That is your right. You can ask for a stop signal before you start. Would you also like each step explained first?" }
+    ],
+    "extras": [
+      { "user": "How much medicine should I take?",
+        "bot": "I can only share what is in the library, and it does not give medicine amounts. Please ask your provider. I can help you write that question." }
+    ],
+    "plan": { "sections": [
+      { "title": "What I want you to know", "items": [
+        { "kind": "mine", "text": "I am worried about pain.", "cites": [] },
+        { "kind": "mine", "text": "I want to be able to stop at any time.", "cites": [] } ] },
+      { "title": "What I want to ask about", "items": [
+        { "kind": "fact", "text": "Do you give a numbing shot at the cervix? Many studies found less pain with it.", "cites": ["iud-block"] },
+        { "kind": "fact", "text": "Do you have numbing cream or spray? Some studies found less pain with these.", "cites": ["iud-topical"] },
+        { "kind": "fact", "text": "Can I get medicine to relax, or be fully asleep? I know I may need a ride home and may have to skip food first.", "cites": ["iud-sedation", "iud-ga"] } ] },
+      { "title": "How I want the visit to go", "items": [
+        { "kind": "mine", "text": "Please pick a stop signal with me before we start.", "cites": [] },
+        { "kind": "mine", "text": "Please tell me each step before you do it.", "cites": [] } ] },
+      { "title": "Questions I have", "items": [
+        { "kind": "mine", "text": "If you do not offer sedation here, where can I go?", "cites": [] } ] }
+    ] },
+    "trap": { "sections": [
+      { "title": "What I want to ask about", "items": [
+        { "kind": "fact", "text": "Do you give a numbing shot at the cervix? Many studies found less pain with it.", "cites": ["iud-block"] },
+        { "kind": "fact", "text": "I read that numbing cream works for everyone.", "cites": ["iud-made-up"] },
+        { "kind": "fact", "text": "Take 800 mg of ibuprofen first.", "cites": ["iud-nsaid"] } ] }
+    ] }
+  },
+  "cervical": {
+    "steps": [
+      { "user": "How often do I need this?",
+        "bot": "For most people at average risk: ages 21 to 29, a Pap test every 3 years. Ages 30 to 65, an HPV test every 5 years, or a Pap test every 3 years, or both tests together every 5 years. Your schedule can be different, so it helps to ask. Would you like to hear about taking your own sample?" },
+      { "user": "Can I do the test myself?",
+        "bot": "If you are 30 to 65 and at average risk, you may be able to collect your own sample with a swab. A January 2026 US guideline says it should be offered as an option. Some older guides disagree, so it is good to ask your clinic. Do you want to hear what happens if a result is not normal?" },
+      { "user": "What if my result is not normal?",
+        "bot": "A not-normal result does not mean you have cancer. What happens next depends on your risk. Some people get another test in 1 year, and some get a closer look at the cervix. You can ask for a copy of your results and a plan for next steps." }
+    ],
+    "extras": [
+      { "user": "How much medicine should I take?",
+        "bot": "I can only share what is in the library, and it does not give medicine amounts. Please ask your provider. I can help you write that question." }
+    ],
+    "plan": { "sections": [
+      { "title": "What I want you to know", "items": [
+        { "kind": "mine", "text": "I want to understand how often I need screening and what my choices are.", "cites": [] } ] },
+      { "title": "What I want to ask about", "items": [
+        { "kind": "fact", "text": "How often should I be screened? Is my schedule the usual one?", "cites": ["cx-when"] },
+        { "kind": "fact", "text": "Can I collect my own sample? Do you have kits here?", "cites": ["cx-self"] },
+        { "kind": "fact", "text": "If two guides disagree about self-collection, which one does your clinic follow?", "cites": ["cx-self"] } ] },
+      { "title": "Questions I have", "items": [
+        { "kind": "fact", "text": "What will happen next if my result is not normal? Can I get a copy of my results?", "cites": ["cx-results"] } ] }
+    ] },
+    "trap": { "sections": [
+      { "title": "What I want to ask about", "items": [
+        { "kind": "fact", "text": "Can I collect my own sample? Do you have kits here?", "cites": ["cx-self"] },
+        { "kind": "fact", "text": "I read that self-collection is fine at any age.", "cites": ["cx-made-up"] },
+        { "kind": "fact", "text": "Take 400 mg of ibuprofen before the test.", "cites": ["cx-timing"] } ] }
+    ] }
+  }
+}

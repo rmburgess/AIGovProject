@@ -11,6 +11,7 @@ A class prototype for AI in Public Health Governance. It has a plain-language, s
 | `app/index.html` | The built page (library inlined). Generated. |
 | `tools/build.py` | Builds `app/index.html` and checks that every citation points to a real source. |
 | `eval/scenarios.json`, `eval/rubric.md` | 24 test scenarios and the scoring rubric. |
+| `content/demo.json` | Pre-written example conversations used by the click-through demo mode. |
 | `docs/governance-draft.md` | First draft of the written analysis. |
 
 ## Build
@@ -26,3 +27,11 @@ The page uses the artifact `sample` capability to call Claude on the viewer's ow
 ## Status
 
 First draft. Not reviewed by a clinician. Not for use with real patients.
+
+## Demo mode
+
+When the page is opened outside Claude (for example on Vercel), the live helper is off and the page switches to a click-through demo. The chat replies are pre-written (`content/demo.json`) and labeled as such. The plan checks (source check, dose filter, reading level) run for real on the pre-written plans. A "Show what the checks catch" button runs the same checks on a made-up bad plan.
+
+## Deploying
+
+`vercel.json` serves the `app` folder with no build step. Run `python3 tools/build.py` and commit `app/index.html` before pushing.

@@ -20,9 +20,20 @@ for m in modules.values():
         for s in c.get("cites", []) + [x for h in c.get("harder", []) for x in h[1]]:
             assert s in m["sources"], f"{c['id']} cites unknown source {s}"
 
+demo = json.loads((root / "content" / "demo.json").read_text())
+for name, d in demo.items():
+    ids = {c["id"] for c in modules[name]["cards"]}
+    for sec in d["plan"]["sections"]:
+        for it in sec["items"]:
+            for cid in it["cites"]:
+                assert cid in ids, f"demo plan for {name} cites unknown card {cid}"
+    # the trap plan is meant to contain bad citations and a dose; it must contain at least one of each
+    bad = [cid for sec in d["trap"]["sections"] for it in sec["items"] for cid in it["cites"] if cid not in ids]
+    assert bad, f"demo trap for {name} should contain an unknown card id"
+
 template = (root / "app" / "template.html").read_text()
 marker = "/*__DATA__*/null"
 assert marker in template, "template is missing the data marker"
-out = template.replace(marker, json.dumps({"modules": modules}, ensure_ascii=False))
+out = template.replace(marker, json.dumps({"modules": modules, "demo": demo}, ensure_ascii=False))
 (root / "app" / "index.html").write_text(out)
 print("built app/index.html", len(out), "bytes")

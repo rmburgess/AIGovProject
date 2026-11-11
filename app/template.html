@@ -150,7 +150,7 @@ ol.plain, ul.plain { margin: 0; padding-left: 22px; display: flex; flex-directio
 <div class="app">
   <div class="topbar">
     <p class="brand">Bring It Up</p>
-    <span class="demo-tag">Class prototype</span>
+    <span class="demo-tag" id="tag">Class prototype</span>
   </div>
 
   <div class="mods" id="mods" role="group" aria-label="Topic"></div>
@@ -200,8 +200,9 @@ function readingGrade(text) {
 }
 
 /* ---------- state ---------- */
-var S = { mod: "iud", tab: "learn", chats: {} };
-ORDER.forEach(function (k) { S.chats[k] = { turns: [], busy: false, plan: null, raw: null, ctl: null }; });
+var S = { mod: "iud", tab: "learn", chats: {}, demo: false };
+function newChat() { return { turns: [], busy: false, plan: null, raw: null, ctl: null, demoStep: 0, isTrap: false }; }
+ORDER.forEach(function (k) { S.chats[k] = newChat(); });
 
 /* ---------- module + tab chrome ---------- */
 var modsBox = document.getElementById("mods");
@@ -296,6 +297,10 @@ function drawLearn() {
   head.appendChild(el("span", "crumb", m.kicker));
   head.appendChild(el("h2", "", m.headline));
   head.appendChild(el("p", "lede", m.intro));
+  if (S.demo) {
+    var db = el("div", "note"); db.appendChild(el("b", "", "Click-through demo. ")); db.appendChild(document.createTextNode("Start here on Learn. Then open Visit helper to play an example conversation and see a plan. Then open How it is checked for the safeguards and sources."));
+    p.appendChild(db);
+  }
   p.appendChild(head);
   if (m.figure === "anatomy") p.appendChild(anatomyFig()); else if (m.figure === "ages") p.appendChild(agesFig());
 
@@ -418,6 +423,7 @@ async function sendChat(mod, text) {
   pushMsg(c, "user", text);
   if (SELFHARM.test(text)) { pushMsg(c, "assistant", SELFHARM_MSG, "sys"); drawChat(); return; }
   if (URGENT.test(text)) { pushMsg(c, "assistant", URGENT_MSG, "sys"); drawChat(); return; }
+  if (S.demo) { demoReply(mod, c, text); return; }
   var sample = await getSample();
   if (!sample) { pushMsg(c, "assistant", "The helper is not turned on in this version of the page. It works when the page is opened inside Claude. You can still use the Learn tab.", "sys"); drawChat(); return; }
   c.ctl = new AbortController();
@@ -436,6 +442,22 @@ async function sendChat(mod, text) {
     else { c.turns[idx] = { role: "assistant", text: errCopy(e && e.code), cls: "sys" }; }
   }
   c.busy = false; drawChat(true);
+}
+
+function demoReply(mod, c, text) {
+  var D = DATA.demo[mod], reply = null;
+  D.steps.forEach(function (s, i) { if (!reply && s.user === text && i === c.demoStep) { reply = s.bot; c.demoStep++; } });
+  if (!reply) D.extras.forEach(function (x) { if (!reply && x.user === text) reply = x.bot; });
+  if (!reply) reply = "In this demo, my replies are pre-written. Please pick one of the suggested messages. On the Claude version, I answer anything you type.";
+  c.turns.push({ role: "assistant", text: "...", cls: "wait" });
+  c.busy = true; drawChat(true);
+  var idx = c.turns.length - 1;
+  setTimeout(function () { c.turns[idx] = { role: "assistant", text: reply, cls: null }; c.busy = false; drawChat(true); }, 600);
+}
+function demoPlan(mod, trap) {
+  var c = S.chats[mod], D = DATA.demo[mod];
+  c.raw = trap ? D.trap : D.plan; c.plan = checkPlan(mod, c.raw); c.planNote = null; c.isTrap = !!trap;
+  drawChat(false, true);
 }
 
 function checkPlan(mod, raw) {
@@ -474,6 +496,7 @@ function sourcesForCards(mod, cardIds) {
 async function makePlan(mod) {
   var c = S.chats[mod];
   if (c.busy) return;
+  if (S.demo) { demoPlan(mod, false); return; }
   var sample = await getSample();
   if (!sample) { pushMsg(c, "assistant", "The helper is not turned on in this version of the page. It works when the page is opened inside Claude. You can still use the Learn tab.", "sys"); drawChat(); return; }
   c.ctl = new AbortController(); c.plan = null; c.raw = null; c.planNote = "Writing your plan..."; setBusy(c, true);
@@ -503,7 +526,7 @@ function drawChat(keepScroll, scrollPlan) {
   p.textContent = "";
   var top = el("div", "btn-row");
   var restart = el("button", "btn", "Start over");
-  restart.onclick = function () { if (c.ctl) c.ctl.abort(); S.chats[S.mod] = { turns: [], busy: false, plan: null, raw: null, ctl: null }; drawChat(); };
+  restart.onclick = function () { if (c.ctl) c.ctl.abort(); S.chats[S.mod] = newChat(); drawChat(); };
   top.appendChild(restart);
   p.appendChild(top);
 
@@ -515,7 +538,23 @@ function drawChat(keepScroll, scrollPlan) {
   });
   p.appendChild(chat);
 
-  if (!c.turns.length) {
+  if (S.demo) {
+    var D = DATA.demo[S.mod];
+    var bn = el("div", "note"); bn.appendChild(el("b", "", "Demo mode. ")); bn.appendChild(document.createTextNode("The replies here are pre-written examples, not live AI. Click the suggested messages in order. The checks on the plan run for real on this page. On the Claude version, the helper answers anything you type."));
+    p.insertBefore(bn, chat);
+    if (!c.busy) {
+      if (c.demoStep < D.steps.length) {
+        p.appendChild(el("p", "demo-note", "Click to send the next message:"));
+        var nx = el("div", "chips"); var nb = el("button", "chip", D.steps[c.demoStep].user); nb.onclick = function () { sendChat(S.mod, D.steps[c.demoStep].user); }; nx.appendChild(nb); p.appendChild(nx);
+      } else {
+        p.appendChild(el("p", "demo-note", "The example conversation is done. Click Make my plan."));
+      }
+      p.appendChild(el("p", "demo-note", "Try the guardrails:"));
+      var gx = el("div", "chips");
+      D.extras.map(function (x) { return x.user; }).concat(["I have heavy bleeding"]).forEach(function (u) { var b = el("button", "chip", u); b.onclick = function () { sendChat(S.mod, u); }; gx.appendChild(b); });
+      p.appendChild(gx);
+    }
+  } else if (!c.turns.length) {
     var chips = el("div", "chips");
     STARTERS[S.mod].forEach(function (s) { var b = el("button", "chip", s); b.onclick = function () { sendChat(S.mod, s); }; chips.appendChild(b); });
     p.appendChild(chips);
@@ -524,20 +563,34 @@ function drawChat(keepScroll, scrollPlan) {
   var comp = el("div", "composer");
   var ta = el("textarea"); ta.id = "msg-box"; ta.value = draft; ta.placeholder = "Type here. You can skip anything."; ta.setAttribute("aria-label", "Your message");
   ta.disabled = c.busy;
-  comp.appendChild(ta);
+  if (!S.demo) comp.appendChild(ta);
   var row = el("div", "btn-row");
   var send = el("button", "btn primary", "Send"); send.disabled = c.busy;
   send.onclick = function () { var v = ta.value; ta.value = ""; sendChat(S.mod, v); };
-  var plan = el("button", "btn", "Make my plan"); plan.disabled = c.busy || !c.turns.some(function (t) { return t.role === "user" && !t.cls; });
+  var plan = el("button", "btn" + (S.demo ? " primary" : ""), "Make my plan");
+  plan.disabled = c.busy || (S.demo ? c.demoStep < DATA.demo[S.mod].steps.length : !c.turns.some(function (t) { return t.role === "user" && !t.cls; }));
   plan.onclick = function () { makePlan(S.mod); };
-  row.appendChild(send); row.appendChild(plan);
+  if (!S.demo) row.appendChild(send);
+  row.appendChild(plan);
   if (c.busy) { var stop = el("button", "btn", "Stop"); stop.onclick = function () { if (c.ctl) c.ctl.abort(); }; row.appendChild(stop); }
   comp.appendChild(row);
   p.appendChild(comp);
-  if (hadFocus && !c.busy) ta.focus();
+  if (hadFocus && !c.busy && !S.demo) ta.focus();
 
   if (c.planNote) p.appendChild(el("p", "demo-note", c.planNote));
+  if (c.plan && S.demo) {
+    var tn = el("div", "note");
+    if (c.isTrap) { tn.appendChild(el("b", "", "Test example. ")); tn.appendChild(document.createTextNode("This is a made-up bad output, written to show what the checks catch. It did not come from a real model.")); }
+    else { tn.appendChild(el("b", "", "Pre-written example plan. ")); tn.appendChild(document.createTextNode("The checks below ran for real on this page.")); }
+    p.appendChild(tn);
+  }
   if (c.plan) p.appendChild(planView(S.mod, c));
+  if (c.plan && S.demo && !c.isTrap) {
+    var tr = el("div", "btn-row"); var tb = el("button", "btn", "Show what the checks catch"); tb.onclick = function () { demoPlan(S.mod, true); }; tr.appendChild(tb); p.appendChild(tr);
+  }
+  if (c.plan && S.demo && c.isTrap) {
+    var tr2 = el("div", "btn-row"); var tb2 = el("button", "btn", "Back to the example plan"); tb2.onclick = function () { demoPlan(S.mod, false); }; tr2.appendChild(tb2); p.appendChild(tr2);
+  }
 
   var al = el("div", "alert");
   al.appendChild(el("b", "", "Need help now? ")); al.appendChild(document.createTextNode("Heavy bleeding, fever, or very bad pain: call your provider or go to urgent care. In an emergency call 911. To talk with someone: call or text 988. RAINN National Sexual Assault Hotline: 800-656-4673."));
@@ -596,6 +649,10 @@ function drawAbout() {
   head.appendChild(el("h2", "", "How it is checked"));
   head.appendChild(el("p", "lede", "This tab is for the class. It shows what the prototype does to keep the AI helper in bounds, and where its sources are weak."));
   p.appendChild(head);
+  if (S.demo) {
+    var dn = el("div", "note"); dn.appendChild(el("b", "", "You are viewing the demo version. ")); dn.appendChild(document.createTextNode("The helper's chat replies here are pre-written. The live helper runs when the page is opened inside Claude. The source checks, dose filter, and reading-level estimate are the same code in both versions."));
+    p.appendChild(dn);
+  }
 
   var s1 = el("div", "stack"); s1.appendChild(el("h3", "", "Safeguards in this build"));
   var ul = el("ul", "plain");
@@ -635,4 +692,7 @@ function drawAbout() {
 
 function drawAll() { drawMods(); drawLearn(); drawChat(); drawAbout(); showTab(S.tab); }
 drawAll();
+getSample().then(function (s) {
+  if (!s) { S.demo = true; document.getElementById("tag").textContent = "Click-through demo"; drawLearn(); drawChat(); drawAbout(); }
+});
 </script>
