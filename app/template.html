@@ -419,7 +419,7 @@ async function sendChat(mod, text) {
   if (SELFHARM.test(text)) { pushMsg(c, "assistant", SELFHARM_MSG, "sys"); drawChat(); return; }
   if (URGENT.test(text)) { pushMsg(c, "assistant", URGENT_MSG, "sys"); drawChat(); return; }
   var sample = await getSample();
-  if (!sample) { pushMsg(c, "assistant", "The helper only works when this page is open inside Claude. You can still use the Learn tab.", "sys"); drawChat(); return; }
+  if (!sample) { pushMsg(c, "assistant", "The helper is not turned on in this version of the page. It works when the page is opened inside Claude. You can still use the Learn tab.", "sys"); drawChat(); return; }
   c.ctl = new AbortController();
   c.turns.push({ role: "assistant", text: "Thinking...", cls: "wait" });
   setBusy(c, true);
@@ -475,7 +475,7 @@ async function makePlan(mod) {
   var c = S.chats[mod];
   if (c.busy) return;
   var sample = await getSample();
-  if (!sample) { pushMsg(c, "assistant", "The helper only works when this page is open inside Claude.", "sys"); drawChat(); return; }
+  if (!sample) { pushMsg(c, "assistant", "The helper is not turned on in this version of the page. It works when the page is opened inside Claude. You can still use the Learn tab.", "sys"); drawChat(); return; }
   c.ctl = new AbortController(); c.plan = null; c.raw = null; c.planNote = "Writing your plan..."; setBusy(c, true);
   try {
     var input = modelTurns(mod, c);
