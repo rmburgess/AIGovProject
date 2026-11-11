@@ -1,0 +1,62 @@
+{
+  "id": "iud",
+  "title": "IUD insertion",
+  "kicker": "Birth control · IUD",
+  "headline": "What can help with pain when you get an IUD?",
+  "intro": "An IUD is a tiny T-shaped piece. A doctor puts it inside your womb to stop pregnancy. Some people feel a lot of pain when it goes in. Some feel only a little. You can ask for help with the pain. Here are your choices.",
+  "figure": "anatomy",
+  "legend": "Dots show how much less pain studies found. Laughing gas, sedation, and sleep have no dots. Our sources did not measure how much they lower pain.",
+  "sources": {
+    "i1": { "t": "Interventions for pain with IUD insertion (review of randomized trials)", "u": "https://pubmed.ncbi.nlm.nih.gov/26222246/", "kind": "Systematic review", "note": "Main source for which pain options helped in trials." },
+    "i2": { "t": "Sandoval et al., review of pain medicine for IUD placement", "u": "https://emilylancia.commons.gc.cuny.edu/wp-content/blogs.dir/23565/files/2024/05/Sandoval-et-al.pdf", "kind": "Literature review", "note": "Hosted on a course page, not the journal. Replace with the journal link." },
+    "i3": { "t": "Canadian Department of National Defence clinician summary: Pain management of IUD insertion", "u": "https://www.canada.ca/en/department-national-defence/services/benefits-military/health-support/women-diversity-health/womens-health-care-clinicians/pain-management-iud-insertion.html", "kind": "Clinician summary (Canada)", "note": "Not US guidance." },
+    "i4": { "t": "Drexel Women's Health Education Program: Pain management with IUD placement (reports ACOG's advice to decide together)", "u": "https://drexel.edu/medicine/academics/md-program/scholars-programs/womens-health-education-program/whep-blog/pain-management-with-iud-placement", "kind": "Medical school blog", "note": "Secondhand report of ACOG. Replace with ACOG directly." },
+    "i5": { "t": "Plowman (2024), review of lidocaine spray and cervical block, University of Manitoba", "u": "https://mspace.lib.umanitoba.ca/items/f5802497-407d-4501-af06-288eb450c3f9", "kind": "Student literature review", "note": "Thesis-level review. Use as supporting evidence only." },
+    "i6": { "t": "MDedge clinical review: How to place an IUD with minimal patient discomfort (nitrous oxide section)", "u": "https://www.mdedge.com/obgyn/article/261374/contraception/how-place-iud-minimal-patient-discomfort/page/0/2", "kind": "Clinical news review", "note": "Covers laughing gas only." },
+    "i7": { "t": "Washington State Health Care Authority clinician bulletin on pain control for IUD placement (sedation, general anesthesia, referral)", "u": "https://content.govdelivery.com/accounts/WAHCA/bulletins/3e5936e", "kind": "State agency bulletin", "note": "Thin source for sedation and general anesthesia." },
+    "i8": { "t": "Family Planning NSW (Australia) patient sheet: Before your procedure with sedation", "u": "https://www.fpnsw.org.au/sites/default/files/assets/Before-your-procedure-with-sedation.pdf", "kind": "Clinic patient sheet (Australia)", "note": "One clinic's rules, not US. Replace with US guidance." }
+  },
+  "groups": [
+    { "id": "easy", "title": "Easy to ask for" },
+    { "id": "stronger", "title": "Stronger choices that need more planning" }
+  ],
+  "cards": [
+    { "id": "iud-support", "group": "easy", "name": "Talking and support", "level": "good", "dots": null, "label": "Good care",
+      "body": "Your doctor or nurse tells you each step first. They stay with you and help you feel safe.",
+      "ask": "Will you tell me each step before you do it?", "cites": ["i3"] },
+    { "id": "iud-nsaid", "group": "easy", "name": "Ibuprofen or naproxen first", "level": "mixed", "dots": 1, "label": "Little help during",
+      "body": "Most studies found it does not help much with pain while the IUD goes in. It may help with cramps after. Many clinics still offer it.",
+      "ask": "Should I take something first? Will it help after?", "cites": ["i1", "i2", "i3"] },
+    { "id": "iud-topical", "group": "easy", "name": "Numbing cream or spray", "level": "good", "dots": 2, "label": "Some help",
+      "body": "Some creams and sprays gave less pain in studies. A plain numbing gel did not help. The spray helped some people who have given birth.",
+      "ask": "Which numbing cream or spray do you use?", "cites": ["i1", "i5"] },
+    { "id": "iud-block", "group": "easy", "name": "Numbing shot at the cervix (cervical block)", "level": "good", "dots": 3, "label": "Helped in many studies",
+      "body": "Many studies found less pain with this shot. It worked best for people who have never given birth. Not all studies agree. The doctor needs special training to give it. Pick it together with your doctor.",
+      "ask": "Do you give a cervical block? Is it a good fit for me?", "cites": ["i1", "i2", "i3", "i4", "i5"] },
+    { "id": "iud-miso", "group": "easy", "name": "A pill called misoprostol", "level": "none", "dots": 0, "label": "Did not help",
+      "body": "Studies found it did not lower pain. In one big check of studies, pain was a bit higher.",
+      "ask": "If you offer it, what is it for?", "cites": ["i1", "i3"] },
+    { "id": "iud-nitrous", "group": "stronger", "name": "Laughing gas (nitrous oxide)", "level": "mixed", "dots": null, "label": "Mixed results",
+      "body": "You breathe it in through a mask. It can lower worry and pain. It wears off fast, so you can leave soon after. One study found less pain. Another found no change.",
+      "ask": "Do you have laughing gas here?", "cites": ["i6"] },
+    { "id": "iud-sedation", "group": "stronger", "name": "Medicine to relax (conscious sedation)", "level": "mixed", "dots": null, "label": "More planning",
+      "body": "A nurse or doctor gives you medicine, often through a small tube in your arm (an IV). You feel relaxed and sleepy. You are not fully asleep. Your doctor looks at what you want and what happened at past visits.",
+      "harder": [
+        ["Some clinics do not offer it. You may be sent to a different place.", ["i7"]],
+        ["It may take longer to get a visit. Cost and insurance can be different, so ask first.", ["i7"]],
+        ["You cannot eat for several hours before. Some clinics cancel the visit if you do.", ["i8"]],
+        ["You need a ride home. You should not drive. Some clinics want an adult with you for a day.", ["i8"]],
+        ["Ask if it is safe for your health.", ["i8"]]
+      ],
+      "tiles": true,
+      "ask": "Can I get medicine to relax? If you do not give it, where can I go?", "cites": ["i7"] },
+    { "id": "iud-ga", "group": "stronger", "name": "Fully asleep (general anesthesia)", "level": "mixed", "dots": null, "label": "Most planning",
+      "body": "You are completely asleep. Your doctor can talk with you about this choice. Your doctor looks at what you want and what happened at past visits.",
+      "harder": [
+        ["It takes the most planning. You may be sent to a different place.", ["i7"]],
+        ["The rules are like sedation: no food first and a ride home. Your clinic will tell you the details.", ["i8"]],
+        ["Anesthesia has its own health risks. Ask if it is safe for you.", ["i8"]]
+      ],
+      "ask": "Can we talk about being fully asleep? Is it a good fit for me?", "cites": ["i7"] }
+  ]
+}

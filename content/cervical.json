@@ -1,0 +1,46 @@
+{
+  "id": "cervical",
+  "title": "Cervical cancer screening",
+  "kicker": "Screening · cervix",
+  "headline": "How does cervical cancer screening work?",
+  "intro": "The cervix is the small door at the bottom of the womb. Screening checks it for changes that could turn into cancer later. Finding changes early makes them easier to treat. Here is what you can choose and what you can ask.",
+  "figure": "ages",
+  "legend": "These ages and times are for people at average risk. Your schedule may be different. Ask your provider.",
+  "sources": {
+    "c1": { "t": "HRSA and Women's Preventive Services Guidelines update, Federal Register, January 5, 2026", "u": "https://www.federalregister.gov/documents/2026/01/05/2025-24235/update-to-the-womens-preventive-services-guidelines", "kind": "US federal guideline notice", "date": "2026-01-05", "note": "Newest source. Sets insurance coverage rules and says self-collection should be offered for ages 30 to 65." },
+    "c2": { "t": "USPSTF draft recommendation on cervical cancer screening (posted December 10, 2024)", "u": "https://www.uspreventiveservicestaskforce.org/uspstf/draft-recommendation/cervical-cancer-screening-adults-adolescents", "kind": "US task force draft", "date": "2024-12-10", "note": "A draft. It says FDA only approves self-collection in clinics, which is out of date after the May 2025 at-home approval." },
+    "c3": { "t": "CDC STI Treatment Guidelines: HPV infection and cervical cancer screening", "u": "https://www.cdc.gov/std/treatment-guidelines/hpv-cancer.htm", "kind": "US federal clinical guidance", "date": null, "note": "Says self-collection is not FDA-cleared. This conflicts with c1 and is likely out of date on that point." },
+    "c4": { "t": "USPSTF final recommendation statement on cervical cancer screening (2018)", "u": "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/cervical-cancer-screening", "kind": "US task force final statement", "date": "2018-08-21", "note": "Current final version. The page says an update is in progress." }
+  },
+  "groups": [
+    { "id": "basics", "title": "The basics" },
+    { "id": "options", "title": "Ways to get screened" },
+    { "id": "after", "title": "After your visit" }
+  ],
+  "cards": [
+    { "id": "cx-what", "group": "basics", "name": "What screening looks for", "level": "good", "dots": null, "label": "Good to know",
+      "body": "Screening can look at the cells on your cervix. It can also test for HPV. HPV is a common germ that can cause cell changes. It often goes away on its own. Having HPV does not mean you have cancer.",
+      "ask": "Which test will you use for me?", "cites": ["c3"] },
+    { "id": "cx-when", "group": "basics", "name": "How often to get screened", "level": "good", "dots": null, "label": "For most people",
+      "body": "Ages 21 to 29: a Pap test every 3 years. Ages 30 to 65: an HPV test every 5 years, or a Pap test every 3 years, or both tests together every 5 years. After 65, many people can stop if past tests were enough. Getting screened more often than every 3 years is not advised for most people. If you had the HPV shot, you are screened the same way. Being pregnant does not change the schedule.",
+      "harder": [
+        ["Your schedule can be different if you have HIV.", ["c3"]],
+        ["If your cervix was removed, you may not need screening. Ask your provider.", ["c3", "c4"]]
+      ],
+      "ask": "How often should I be screened? Is my schedule the usual one?", "cites": ["c1", "c3", "c4"] },
+    { "id": "cx-self", "group": "options", "name": "Taking your own HPV sample (self-collection)", "level": "good", "dots": null, "label": "An option for ages 30 to 65",
+      "body": "If you are 30 to 65 and at average risk, you may be able to collect your own sample with a swab. Studies found it works about as well as a sample taken by a clinician. It has been linked to more people getting screened, especially people who are screened less. In January 2026, a US health agency (HRSA) said it should be offered as an option. The FDA approved kits for use at a clinic in May 2024. It approved a kit for use at home in May 2025.",
+      "harder": [
+        ["It is only for ages 30 to 65.", ["c1"]],
+        ["Insurance must cover the updated screening with no copay starting in 2027 for most plans. Before then, cost may be different. Ask your plan.", ["c1"]],
+        ["Some guides were written before these approvals and still say self-collection is not approved. If two sources disagree, ask which one your clinic follows.", ["c1", "c3"]]
+      ],
+      "ask": "Can I collect my own sample? Do you have kits here?", "cites": ["c1", "c2"] },
+    { "id": "cx-timing", "group": "options", "name": "When to book your visit", "level": "mixed", "dots": null, "label": "Depends on the test",
+      "body": "For one kind of Pap test (called conventional), 10 to 20 days after your period starts is best. Another kind (called liquid-based) can be done at any time. Ask which kind your clinic uses.",
+      "ask": "Which kind of Pap test do you use? When should I book?", "cites": ["c3"] },
+    { "id": "cx-results", "group": "after", "name": "If your result is not normal", "level": "mixed", "dots": null, "label": "Common, and not cancer by itself",
+      "body": "A not-normal result does not mean you have cancer. What happens next depends on your risk. Some people get another test in 1 year. Some get a closer look at the cervix. That is called a colposcopy. Two kinds of HPV, called 16 and 18, usually lead to a closer look. You should get a copy of your results and a plan for what to do next.",
+      "ask": "What will happen next if my result is not normal? Can I get a copy of my results?", "cites": ["c3"] }
+  ]
+}

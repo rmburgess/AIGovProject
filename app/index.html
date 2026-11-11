@@ -1,0 +1,638 @@
+<title>Bring It Up</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow app column. Module switch (IUD / Cervical screening) on top, then three tabs: Learn, Visit helper (real Claude chat that drafts a plan), How it is checked. */
+:root {
+  --bg: #F4F3F8;
+  --surface: #FFFFFF;
+  --ink: #26202E;
+  --muted: #5E566B;
+  --line: #DCD7E6;
+  --accent: #17695F;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #DDF0EC;
+  --warm: #8A4F00;
+  --warm-soft: #FBECD2;
+  --quiet: #6B6478;
+  --quiet-soft: #ECE9F2;
+  --danger: #9B2C2C;
+  --danger-soft: #FBE3E3;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16121B; --surface: #211B28; --ink: #EFEBF5; --muted: #B4ABC2; --line: #3A3245;
+    --accent: #5FC6B5; --accent-ink: #0C2824; --accent-soft: #1D3935;
+    --warm: #F2B661; --warm-soft: #3B2E19; --quiet: #A79EB6; --quiet-soft: #2D2736;
+    --danger: #F3A0A0; --danger-soft: #3F2323;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #16121B; --surface: #211B28; --ink: #EFEBF5; --muted: #B4ABC2; --line: #3A3245;
+  --accent: #5FC6B5; --accent-ink: #0C2824; --accent-soft: #1D3935;
+  --warm: #F2B661; --warm-soft: #3B2E19; --quiet: #A79EB6; --quiet-soft: #2D2736;
+  --danger: #F3A0A0; --danger-soft: #3F2323;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body);
+  font-size: 18px; line-height: 1.55; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 26px; letter-spacing: -0.02em; margin: 0; }
+.demo-tag { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
+.mods { display: flex; gap: 8px; flex-wrap: wrap; }
+.mod { font: inherit; font-weight: 600; font-size: 15px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.mod[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.mod.soon { color: var(--muted); border-style: dashed; cursor: default; }
+.tabs { display: flex; gap: 4px; background: var(--quiet-soft); padding: 4px; border-radius: 12px; }
+.tab { flex: 1; font: inherit; font-weight: 600; font-size: 15px; color: var(--muted); background: transparent; border: 0; padding: 10px 8px; border-radius: 9px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.12); }
+.tab:focus-visible, .btn:focus-visible, .chip:focus-visible, .mod:focus-visible, textarea:focus-visible, .sheet:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 5.5vw, 36px); line-height: 1.1; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--font-display); font-weight: 700; font-size: 21px; margin: 0; letter-spacing: -0.01em; }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 62ch; }
+.crumb { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.group-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 8px 0 0; }
+.opt { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.opt-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.opt-head h3 { min-width: 0; flex: 1 1 220px; }
+.pill { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
+.pill.good { background: var(--accent-soft); color: var(--accent); }
+.pill.mixed { background: var(--warm-soft); color: var(--warm); }
+.pill.none { background: var(--quiet-soft); color: var(--quiet); }
+.pill.bad { background: var(--danger-soft); color: var(--danger); }
+.dots { display: inline-flex; gap: 3px; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid currentColor; display: block; }
+.dots i.on { background: currentColor; }
+.ask { font-size: 16px; border-top: 1px dashed var(--line); padding-top: 10px; color: var(--muted); }
+.ask b { color: var(--ink); font-weight: 600; }
+.cite { font-size: 12px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+.legend { font-size: 14px; color: var(--muted); }
+.note { background: var(--quiet-soft); border-radius: 12px; padding: 14px 16px; font-size: 16px; }
+.note b { font-weight: 600; }
+.alert { background: var(--danger-soft); color: var(--ink); border-left: 4px solid var(--danger); border-radius: 10px; padding: 12px 14px; font-size: 16px; }
+.harder { background: var(--warm-soft); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.harder h4 { margin: 0; font-size: 15px; font-weight: 600; color: var(--warm); }
+.harder ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 16px; }
+.btn { font: inherit; font-weight: 600; font-size: 16px; border-radius: 10px; padding: 11px 16px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn[disabled] { opacity: 0.45; cursor: default; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.sources { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--muted); }
+.sources a { color: var(--accent); overflow-wrap: anywhere; }
+.demo-note { font-size: 13px; color: var(--muted); }
+.fig { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.fig figcaption { font-size: 15px; color: var(--muted); }
+.fig-title { font-weight: 600; font-size: 16px; }
+.anat { width: 100%; max-width: 440px; height: auto; align-self: center; display: block; }
+.anat .body { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2.5; }
+.anat .neck { fill: var(--surface); stroke: var(--accent); stroke-width: 2.5; }
+.anat .tube { fill: var(--quiet-soft); stroke: var(--quiet); stroke-width: 2.5; }
+.anat .iud { stroke: var(--warm); stroke-width: 6; stroke-linecap: round; fill: none; }
+.anat .shot { fill: var(--warm); }
+.anat .lead { stroke: var(--muted); stroke-width: 1.2; fill: none; }
+.anat text { fill: var(--ink); font-family: var(--font-body); font-size: 15px; font-weight: 600; }
+.stairs { display: flex; align-items: flex-end; gap: 6px; }
+.step { flex: 1 1 0; min-width: 0; background: var(--accent-soft); border: 2px solid var(--accent); border-radius: 10px 10px 4px 4px; padding: 8px 6px; font-size: 14px; font-weight: 600; line-height: 1.25; text-align: center; display: flex; align-items: flex-start; justify-content: center; overflow-wrap: anywhere; }
+.s1 { height: 96px; } .s2 { height: 124px; } .s3 { height: 152px; } .s4 { height: 180px; }
+.axis { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); font-weight: 600; }
+.axis::after { content: ""; flex: 1; height: 2px; background: var(--muted); }
+.ages { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 6px; }
+@media (max-width: 520px) { .ages { grid-template-columns: 1fr; } }
+.age { background: var(--accent-soft); border: 2px solid var(--accent); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.age.quiet { background: var(--quiet-soft); border-color: var(--quiet); }
+.age b { font-family: var(--font-display); font-size: 24px; line-height: 1.1; }
+.age span { font-size: 15px; overflow-wrap: anywhere; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.tile { background: var(--quiet-soft); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; font-size: 15px; min-width: 0; }
+.tile svg { width: 44px; height: 44px; stroke: var(--accent); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+/* chat */
+.chat { display: flex; flex-direction: column; gap: 12px; }
+.bubble { max-width: 90%; padding: 12px 14px; border-radius: 16px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.bubble.bot { background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 4px; align-self: flex-start; }
+.bubble.me { background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; align-self: flex-end; }
+.bubble.sys { background: var(--danger-soft); border: 1px solid var(--danger); align-self: stretch; max-width: 100%; }
+.bubble.wait { color: var(--muted); font-style: italic; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; font-size: 16px; font-weight: 500; text-align: left; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 9px 13px; cursor: pointer; }
+.composer { display: flex; flex-direction: column; gap: 10px; }
+textarea { font: inherit; font-size: 17px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; resize: vertical; min-height: 72px; width: 100%; box-sizing: border-box; }
+.sheet { background: var(--surface); border: 1.5px solid var(--accent); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.sheet h4 { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 0 0 4px; font-weight: 600; }
+.sheet ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.sheet-sub { color: var(--muted); font-size: 15px; }
+.flag { font-size: 12px; font-weight: 600; color: var(--danger); background: var(--danger-soft); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.checks { background: var(--quiet-soft); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; font-size: 15px; }
+.checks b { font-weight: 600; }
+.checks ul { margin: 0; padding-left: 20px; }
+pre.raw { margin: 0; overflow-x: auto; font-size: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 8px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+.scroll-x { overflow-x: auto; }
+ol.plain, ul.plain { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+@media (prefers-reduced-motion: no-preference) {
+  .bubble, .sheet { animation: rise 0.25s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <p class="brand">Bring It Up</p>
+    <span class="demo-tag">Class prototype</span>
+  </div>
+
+  <div class="mods" id="mods" role="group" aria-label="Topic"></div>
+
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="tab-learn" aria-selected="true" aria-controls="panel-learn">Learn</button>
+    <button class="tab" role="tab" id="tab-chat" aria-selected="false" aria-controls="panel-chat">Visit helper</button>
+    <button class="tab" role="tab" id="tab-about" aria-selected="false" aria-controls="panel-about">How it is checked</button>
+  </div>
+
+  <section id="panel-learn" role="tabpanel" aria-labelledby="tab-learn" class="stack" style="gap:20px"></section>
+  <section id="panel-chat" role="tabpanel" aria-labelledby="tab-chat" class="stack" hidden></section>
+  <section id="panel-about" role="tabpanel" aria-labelledby="tab-about" class="stack" hidden></section>
+</div>
+
+<script>
+var DATA = {"modules": {"iud": {"id": "iud", "title": "IUD insertion", "kicker": "Birth control · IUD", "headline": "What can help with pain when you get an IUD?", "intro": "An IUD is a tiny T-shaped piece. A doctor puts it inside your womb to stop pregnancy. Some people feel a lot of pain when it goes in. Some feel only a little. You can ask for help with the pain. Here are your choices.", "figure": "anatomy", "legend": "Dots show how much less pain studies found. Laughing gas, sedation, and sleep have no dots. Our sources did not measure how much they lower pain.", "sources": {"i1": {"t": "Interventions for pain with IUD insertion (review of randomized trials)", "u": "https://pubmed.ncbi.nlm.nih.gov/26222246/", "kind": "Systematic review", "note": "Main source for which pain options helped in trials."}, "i2": {"t": "Sandoval et al., review of pain medicine for IUD placement", "u": "https://emilylancia.commons.gc.cuny.edu/wp-content/blogs.dir/23565/files/2024/05/Sandoval-et-al.pdf", "kind": "Literature review", "note": "Hosted on a course page, not the journal. Replace with the journal link."}, "i3": {"t": "Canadian Department of National Defence clinician summary: Pain management of IUD insertion", "u": "https://www.canada.ca/en/department-national-defence/services/benefits-military/health-support/women-diversity-health/womens-health-care-clinicians/pain-management-iud-insertion.html", "kind": "Clinician summary (Canada)", "note": "Not US guidance."}, "i4": {"t": "Drexel Women's Health Education Program: Pain management with IUD placement (reports ACOG's advice to decide together)", "u": "https://drexel.edu/medicine/academics/md-program/scholars-programs/womens-health-education-program/whep-blog/pain-management-with-iud-placement", "kind": "Medical school blog", "note": "Secondhand report of ACOG. Replace with ACOG directly."}, "i5": {"t": "Plowman (2024), review of lidocaine spray and cervical block, University of Manitoba", "u": "https://mspace.lib.umanitoba.ca/items/f5802497-407d-4501-af06-288eb450c3f9", "kind": "Student literature review", "note": "Thesis-level review. Use as supporting evidence only."}, "i6": {"t": "MDedge clinical review: How to place an IUD with minimal patient discomfort (nitrous oxide section)", "u": "https://www.mdedge.com/obgyn/article/261374/contraception/how-place-iud-minimal-patient-discomfort/page/0/2", "kind": "Clinical news review", "note": "Covers laughing gas only."}, "i7": {"t": "Washington State Health Care Authority clinician bulletin on pain control for IUD placement (sedation, general anesthesia, referral)", "u": "https://content.govdelivery.com/accounts/WAHCA/bulletins/3e5936e", "kind": "State agency bulletin", "note": "Thin source for sedation and general anesthesia."}, "i8": {"t": "Family Planning NSW (Australia) patient sheet: Before your procedure with sedation", "u": "https://www.fpnsw.org.au/sites/default/files/assets/Before-your-procedure-with-sedation.pdf", "kind": "Clinic patient sheet (Australia)", "note": "One clinic's rules, not US. Replace with US guidance."}}, "groups": [{"id": "easy", "title": "Easy to ask for"}, {"id": "stronger", "title": "Stronger choices that need more planning"}], "cards": [{"id": "iud-support", "group": "easy", "name": "Talking and support", "level": "good", "dots": null, "label": "Good care", "body": "Your doctor or nurse tells you each step first. They stay with you and help you feel safe.", "ask": "Will you tell me each step before you do it?", "cites": ["i3"]}, {"id": "iud-nsaid", "group": "easy", "name": "Ibuprofen or naproxen first", "level": "mixed", "dots": 1, "label": "Little help during", "body": "Most studies found it does not help much with pain while the IUD goes in. It may help with cramps after. Many clinics still offer it.", "ask": "Should I take something first? Will it help after?", "cites": ["i1", "i2", "i3"]}, {"id": "iud-topical", "group": "easy", "name": "Numbing cream or spray", "level": "good", "dots": 2, "label": "Some help", "body": "Some creams and sprays gave less pain in studies. A plain numbing gel did not help. The spray helped some people who have given birth.", "ask": "Which numbing cream or spray do you use?", "cites": ["i1", "i5"]}, {"id": "iud-block", "group": "easy", "name": "Numbing shot at the cervix (cervical block)", "level": "good", "dots": 3, "label": "Helped in many studies", "body": "Many studies found less pain with this shot. It worked best for people who have never given birth. Not all studies agree. The doctor needs special training to give it. Pick it together with your doctor.", "ask": "Do you give a cervical block? Is it a good fit for me?", "cites": ["i1", "i2", "i3", "i4", "i5"]}, {"id": "iud-miso", "group": "easy", "name": "A pill called misoprostol", "level": "none", "dots": 0, "label": "Did not help", "body": "Studies found it did not lower pain. In one big check of studies, pain was a bit higher.", "ask": "If you offer it, what is it for?", "cites": ["i1", "i3"]}, {"id": "iud-nitrous", "group": "stronger", "name": "Laughing gas (nitrous oxide)", "level": "mixed", "dots": null, "label": "Mixed results", "body": "You breathe it in through a mask. It can lower worry and pain. It wears off fast, so you can leave soon after. One study found less pain. Another found no change.", "ask": "Do you have laughing gas here?", "cites": ["i6"]}, {"id": "iud-sedation", "group": "stronger", "name": "Medicine to relax (conscious sedation)", "level": "mixed", "dots": null, "label": "More planning", "body": "A nurse or doctor gives you medicine, often through a small tube in your arm (an IV). You feel relaxed and sleepy. You are not fully asleep. Your doctor looks at what you want and what happened at past visits.", "harder": [["Some clinics do not offer it. You may be sent to a different place.", ["i7"]], ["It may take longer to get a visit. Cost and insurance can be different, so ask first.", ["i7"]], ["You cannot eat for several hours before. Some clinics cancel the visit if you do.", ["i8"]], ["You need a ride home. You should not drive. Some clinics want an adult with you for a day.", ["i8"]], ["Ask if it is safe for your health.", ["i8"]]], "tiles": true, "ask": "Can I get medicine to relax? If you do not give it, where can I go?", "cites": ["i7"]}, {"id": "iud-ga", "group": "stronger", "name": "Fully asleep (general anesthesia)", "level": "mixed", "dots": null, "label": "Most planning", "body": "You are completely asleep. Your doctor can talk with you about this choice. Your doctor looks at what you want and what happened at past visits.", "harder": [["It takes the most planning. You may be sent to a different place.", ["i7"]], ["The rules are like sedation: no food first and a ride home. Your clinic will tell you the details.", ["i8"]], ["Anesthesia has its own health risks. Ask if it is safe for you.", ["i8"]]], "ask": "Can we talk about being fully asleep? Is it a good fit for me?", "cites": ["i7"]}]}, "cervical": {"id": "cervical", "title": "Cervical cancer screening", "kicker": "Screening · cervix", "headline": "How does cervical cancer screening work?", "intro": "The cervix is the small door at the bottom of the womb. Screening checks it for changes that could turn into cancer later. Finding changes early makes them easier to treat. Here is what you can choose and what you can ask.", "figure": "ages", "legend": "These ages and times are for people at average risk. Your schedule may be different. Ask your provider.", "sources": {"c1": {"t": "HRSA and Women's Preventive Services Guidelines update, Federal Register, January 5, 2026", "u": "https://www.federalregister.gov/documents/2026/01/05/2025-24235/update-to-the-womens-preventive-services-guidelines", "kind": "US federal guideline notice", "date": "2026-01-05", "note": "Newest source. Sets insurance coverage rules and says self-collection should be offered for ages 30 to 65."}, "c2": {"t": "USPSTF draft recommendation on cervical cancer screening (posted December 10, 2024)", "u": "https://www.uspreventiveservicestaskforce.org/uspstf/draft-recommendation/cervical-cancer-screening-adults-adolescents", "kind": "US task force draft", "date": "2024-12-10", "note": "A draft. It says FDA only approves self-collection in clinics, which is out of date after the May 2025 at-home approval."}, "c3": {"t": "CDC STI Treatment Guidelines: HPV infection and cervical cancer screening", "u": "https://www.cdc.gov/std/treatment-guidelines/hpv-cancer.htm", "kind": "US federal clinical guidance", "date": null, "note": "Says self-collection is not FDA-cleared. This conflicts with c1 and is likely out of date on that point."}, "c4": {"t": "USPSTF final recommendation statement on cervical cancer screening (2018)", "u": "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/cervical-cancer-screening", "kind": "US task force final statement", "date": "2018-08-21", "note": "Current final version. The page says an update is in progress."}}, "groups": [{"id": "basics", "title": "The basics"}, {"id": "options", "title": "Ways to get screened"}, {"id": "after", "title": "After your visit"}], "cards": [{"id": "cx-what", "group": "basics", "name": "What screening looks for", "level": "good", "dots": null, "label": "Good to know", "body": "Screening can look at the cells on your cervix. It can also test for HPV. HPV is a common germ that can cause cell changes. It often goes away on its own. Having HPV does not mean you have cancer.", "ask": "Which test will you use for me?", "cites": ["c3"]}, {"id": "cx-when", "group": "basics", "name": "How often to get screened", "level": "good", "dots": null, "label": "For most people", "body": "Ages 21 to 29: a Pap test every 3 years. Ages 30 to 65: an HPV test every 5 years, or a Pap test every 3 years, or both tests together every 5 years. After 65, many people can stop if past tests were enough. Getting screened more often than every 3 years is not advised for most people. If you had the HPV shot, you are screened the same way. Being pregnant does not change the schedule.", "harder": [["Your schedule can be different if you have HIV.", ["c3"]], ["If your cervix was removed, you may not need screening. Ask your provider.", ["c3", "c4"]]], "ask": "How often should I be screened? Is my schedule the usual one?", "cites": ["c1", "c3", "c4"]}, {"id": "cx-self", "group": "options", "name": "Taking your own HPV sample (self-collection)", "level": "good", "dots": null, "label": "An option for ages 30 to 65", "body": "If you are 30 to 65 and at average risk, you may be able to collect your own sample with a swab. Studies found it works about as well as a sample taken by a clinician. It has been linked to more people getting screened, especially people who are screened less. In January 2026, a US health agency (HRSA) said it should be offered as an option. The FDA approved kits for use at a clinic in May 2024. It approved a kit for use at home in May 2025.", "harder": [["It is only for ages 30 to 65.", ["c1"]], ["Insurance must cover the updated screening with no copay starting in 2027 for most plans. Before then, cost may be different. Ask your plan.", ["c1"]], ["Some guides were written before these approvals and still say self-collection is not approved. If two sources disagree, ask which one your clinic follows.", ["c1", "c3"]]], "ask": "Can I collect my own sample? Do you have kits here?", "cites": ["c1", "c2"]}, {"id": "cx-timing", "group": "options", "name": "When to book your visit", "level": "mixed", "dots": null, "label": "Depends on the test", "body": "For one kind of Pap test (called conventional), 10 to 20 days after your period starts is best. Another kind (called liquid-based) can be done at any time. Ask which kind your clinic uses.", "ask": "Which kind of Pap test do you use? When should I book?", "cites": ["c3"]}, {"id": "cx-results", "group": "after", "name": "If your result is not normal", "level": "mixed", "dots": null, "label": "Common, and not cancer by itself", "body": "A not-normal result does not mean you have cancer. What happens next depends on your risk. Some people get another test in 1 year. Some get a closer look at the cervix. That is called a colposcopy. Two kinds of HPV, called 16 and 18, usually lead to a closer look. You should get a copy of your results and a plan for what to do next.", "ask": "What will happen next if my result is not normal? Can I get a copy of my results?", "cites": ["c3"]}]}}};
+var MODS = DATA.modules;
+var ORDER = ["iud", "cervical"];
+
+/* ---------- helpers ---------- */
+function el(tag, cls, text) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function citeSpan(mod, ids) {
+  var s = el("span", "cite", " [" + ids.map(function (i) { return i.replace(/^[a-z]/, ""); }).join(", ") + "]");
+  s.title = ids.map(function (i) { return MODS[mod].sources[i].t; }).join(" | ");
+  return s;
+}
+function readingGrade(text) {
+  function syl(w) {
+    w = w.toLowerCase().replace(/[^a-z]/g, "");
+    if (!w) return 0;
+    if (w.length <= 3) return 1;
+    w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, "").replace(/^y/, "");
+    var m = w.match(/[aeiouy]{1,2}/g);
+    return Math.max(1, m ? m.length : 1);
+  }
+  var sents = text.split(/[.!?]+\s/).filter(function (s) { return s.trim().split(/\s+/).length > 1; });
+  var words = text.match(/[A-Za-z']+/g) || [];
+  if (!sents.length || !words.length) return null;
+  var y = 0; words.forEach(function (w) { y += syl(w); });
+  return Math.round((0.39 * words.length / sents.length + 11.8 * y / words.length - 15.59) * 10) / 10;
+}
+
+/* ---------- state ---------- */
+var S = { mod: "iud", tab: "learn", chats: {} };
+ORDER.forEach(function (k) { S.chats[k] = { turns: [], busy: false, plan: null, raw: null, ctl: null }; });
+
+/* ---------- module + tab chrome ---------- */
+var modsBox = document.getElementById("mods");
+function drawMods() {
+  modsBox.textContent = "";
+  ORDER.forEach(function (k) {
+    var b = el("button", "mod", MODS[k].title);
+    b.setAttribute("aria-pressed", String(S.mod === k));
+    b.onclick = function () { S.mod = k; drawAll(); };
+    modsBox.appendChild(b);
+  });
+  var soon = el("span", "mod soon", "Birth plan · coming next");
+  modsBox.appendChild(soon);
+}
+var tabIds = ["learn", "chat", "about"];
+function showTab(t) {
+  S.tab = t;
+  tabIds.forEach(function (id) {
+    document.getElementById("tab-" + id).setAttribute("aria-selected", String(id === t));
+    document.getElementById("panel-" + id).hidden = id !== t;
+  });
+  window.scrollTo(0, 0);
+}
+tabIds.forEach(function (id) { document.getElementById("tab-" + id).onclick = function () { showTab(id); }; });
+
+/* ---------- Learn ---------- */
+var ICONS = [
+  { label: "No food for several hours", draw: '<circle cx="24" cy="24" r="14"/><line x1="8" y1="40" x2="40" y2="8"/>' },
+  { label: "A ride home. You cannot drive", draw: '<path d="M7 29 L12 18 H36 L41 29 V35 H7 Z"/><circle cx="16" cy="36" r="4"/><circle cx="32" cy="36" r="4"/>' },
+  { label: "An adult stays with you", draw: '<circle cx="17" cy="15" r="6"/><path d="M5 40 C5 29 29 29 29 40"/><circle cx="35" cy="20" r="5"/><path d="M30 40 C30 33 43 33 43 40"/>' },
+  { label: "More time to book a visit", draw: '<rect x="7" y="10" width="34" height="30" rx="4"/><line x1="7" y1="20" x2="41" y2="20"/><line x1="16" y1="6" x2="16" y2="14"/><line x1="32" y1="6" x2="32" y2="14"/>' }
+];
+function tilesFig() {
+  var f = el("figure", "fig");
+  f.appendChild(el("p", "fig-title", "What sedation or sleep day can look like"));
+  var grid = el("div", "tiles");
+  ICONS.forEach(function (ic) {
+    var t = el("div", "tile");
+    var s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    s.setAttribute("viewBox", "0 0 48 48"); s.setAttribute("aria-hidden", "true");
+    s.innerHTML = ic.draw;
+    t.appendChild(s); t.appendChild(el("span", "", ic.label)); grid.appendChild(t);
+  });
+  f.appendChild(grid);
+  f.appendChild(el("figcaption", "", "Rules change by clinic. Ask yours."));
+  return f;
+}
+function anatomyFig() {
+  var f = el("figure", "fig");
+  f.appendChild(el("p", "fig-title", "Where the IUD goes"));
+  var wrap = el("div");
+  wrap.innerHTML = '<svg class="anat" viewBox="0 0 440 270" role="img" aria-label="Simple side picture of the womb, cervix, and vagina. The IUD sits inside the womb. Dots around the cervix show where a numbing shot goes.">' +
+    '<rect class="tube" x="188" y="190" width="64" height="70" rx="10"/>' +
+    '<path class="body" d="M220,30 C165,30 140,70 152,115 C160,145 195,160 202,175 L202,185 L238,185 L238,175 C245,160 280,145 288,115 C300,70 275,30 220,30 Z"/>' +
+    '<rect class="neck" x="200" y="162" width="40" height="34" rx="8"/>' +
+    '<path class="iud" d="M198,62 L242,62 M220,62 L220,120"/>' +
+    '<circle class="shot" cx="192" cy="170" r="4.5"/><circle class="shot" cx="248" cy="170" r="4.5"/><circle class="shot" cx="192" cy="188" r="4.5"/><circle class="shot" cx="248" cy="188" r="4.5"/>' +
+    '<text x="10" y="97">Womb (uterus)</text><path class="lead" d="M118,92 L156,92"/>' +
+    '<text x="310" y="68">IUD</text><path class="lead" d="M248,64 L304,64"/>' +
+    '<text x="10" y="175">Cervix</text><path class="lead" d="M62,170 L186,170"/>' +
+    '<text x="300" y="214">Numbing shot</text><text x="300" y="234">goes here</text><path class="lead" d="M254,189 L294,208"/>' +
+    '<text x="10" y="240">Vagina</text><path class="lead" d="M64,235 L186,235"/></svg>';
+  f.appendChild(wrap.firstChild);
+  f.appendChild(el("figcaption", "", "The IUD sits in the womb. The doctor reaches it through the cervix. The cervix is the small door at the bottom of the womb. A numbing shot, if you pick one, goes around the cervix. This is a simple picture. It is not to scale."));
+  var f2 = el("figure", "fig");
+  f2.appendChild(el("p", "fig-title", "Your choices, from simple to strong"));
+  var st = el("div", "stairs");
+  st.setAttribute("role", "img");
+  st.setAttribute("aria-label", "Four steps going up: talking and support, numbing cream or spray or shot, gas or medicine to relax, and fully asleep. Each step needs more planning.");
+  [["s1", "Talk and support"], ["s2", "Numbing cream, spray, or shot"], ["s3", "Gas or medicine to relax"], ["s4", "Fully asleep"]].forEach(function (x) { st.appendChild(el("div", "step " + x[0], x[1])); });
+  f2.appendChild(st);
+  var ax = el("div", "axis"); ax.appendChild(el("span", "", "More help can mean more planning")); f2.appendChild(ax);
+  f2.appendChild(el("figcaption", "", "You can pick more than one. Stronger choices have more steps to do first."));
+  var frag = document.createDocumentFragment(); frag.appendChild(f); frag.appendChild(f2); return frag;
+}
+function agesFig() {
+  var f = el("figure", "fig");
+  f.appendChild(el("p", "fig-title", "How often, by age (for most people)"));
+  var g = el("div", "ages");
+  [["21 to 29", "Pap test every 3 years", ""], ["30 to 65", "HPV test every 5 years. Or a Pap test every 3 years. Or both tests together every 5 years.", ""], ["After 65", "Many people can stop if past tests were enough.", "quiet"]].forEach(function (a) {
+    var c = el("div", "age " + a[2]); c.appendChild(el("b", "", a[0])); c.appendChild(el("span", "", a[1])); g.appendChild(c);
+  });
+  f.appendChild(g);
+  f.appendChild(el("figcaption", "", "This is for people at average risk. Your schedule may be different. Ask your provider."));
+  return f;
+}
+
+function drawLearn() {
+  var m = MODS[S.mod], p = document.getElementById("panel-learn");
+  p.textContent = "";
+  var head = el("div", "stack"); head.style.gap = "10px";
+  head.appendChild(el("span", "crumb", m.kicker));
+  head.appendChild(el("h2", "", m.headline));
+  head.appendChild(el("p", "lede", m.intro));
+  p.appendChild(head);
+  if (m.figure === "anatomy") p.appendChild(anatomyFig()); else if (m.figure === "ages") p.appendChild(agesFig());
+
+  var list = el("div", "stack");
+  m.groups.forEach(function (g) {
+    list.appendChild(el("h3", "group-title", g.title));
+    m.cards.filter(function (c) { return c.group === g.id; }).forEach(function (c) {
+      var card = el("article", "opt");
+      var h = el("div", "opt-head"); h.appendChild(el("h3", "", c.name));
+      var pill = el("span", "pill " + c.level);
+      if (c.dots !== null && c.dots !== undefined) {
+        var d = el("span", "dots"); d.setAttribute("aria-hidden", "true");
+        for (var i = 0; i < 3; i++) { var x = document.createElement("i"); if (i < c.dots) x.className = "on"; d.appendChild(x); }
+        pill.appendChild(d);
+      }
+      pill.appendChild(document.createTextNode(c.label)); h.appendChild(pill); card.appendChild(h);
+      var para = el("p", "", c.body); para.appendChild(citeSpan(S.mod, c.cites)); card.appendChild(para);
+      if (c.harder) {
+        var hb = el("div", "harder"); hb.appendChild(el("h4", "", c.id.indexOf("cx") === 0 ? "Good to know" : "Why this may be harder"));
+        var ul = el("ul");
+        c.harder.forEach(function (r) { var li = el("li", "", r[0]); li.appendChild(citeSpan(S.mod, r[1])); ul.appendChild(li); });
+        hb.appendChild(ul); card.appendChild(hb);
+      }
+      if (c.tiles) card.appendChild(tilesFig());
+      var ask = el("p", "ask"); ask.appendChild(el("b", "", "Ask your provider: ")); ask.appendChild(document.createTextNode(c.ask)); card.appendChild(ask);
+      list.appendChild(card);
+    });
+  });
+  p.appendChild(list);
+  p.appendChild(el("p", "legend", m.legend));
+  var n = el("div", "note"); n.appendChild(el("b", "", "You can ask to stop at any time. ")); n.appendChild(document.createTextNode("This is your right. It is not a study result, so it has no source."));
+  p.appendChild(n);
+  var row = el("div", "btn-row"); var go = el("button", "btn primary", "Make my visit plan");
+  go.onclick = function () { showTab("chat"); }; row.appendChild(go); p.appendChild(row);
+
+  var sb = el("div", "stack"); sb.style.gap = "8px"; sb.appendChild(el("h3", "", "Sources"));
+  var ol = el("ol", "sources");
+  Object.keys(m.sources).forEach(function (k) {
+    var li = el("li"); var a = el("a", "", m.sources[k].t); a.href = m.sources[k].u; a.target = "_blank"; a.rel = "noopener"; li.appendChild(a); ol.appendChild(li);
+  });
+  sb.appendChild(ol);
+  sb.appendChild(el("p", "demo-note", "This is general information, not medical advice. A real version would be checked by a clinician first. The next tab explains how each source was judged."));
+  p.appendChild(sb);
+}
+
+/* ---------- Assistant ---------- */
+var DOSE = /\b\d+(?:\.\d+)?\s?(?:mg|mcg|µg|ml|mL|g|units?|cc)\b/i;
+var URGENT = /(heavy bleeding|soaking (?:a|through)|severe pain|very bad pain|fever|faint|passed out|can'?t breathe|chest pain|emergency|pus|bad smell)/i;
+var SELFHARM = /(kill myself|suicid|end my life|want to die|hurt myself|harm myself)/i;
+var DISCLOSE = /(assault|abus|rape|raped|molest|trauma|survivor|hurt me|forced me)/i;
+var URGENT_MSG = "If you have heavy bleeding, a fever, very bad pain, or trouble breathing, please call your provider or go to urgent care now. In an emergency, call 911. This helper cannot judge symptoms.";
+var SELFHARM_MSG = "I am really glad you said that. You deserve support right now. You can call or text 988 (Suicide and Crisis Lifeline) at any time. If you are in danger, call 911.";
+var SUPPORT_NOTE = "You choose what to share, and with whom. If you want to talk with someone, the RAINN National Sexual Assault Hotline is 800-656-4673. For a crisis, call or text 988.";
+
+function libraryFor(mod) {
+  var m = MODS[mod];
+  return JSON.stringify(m.cards.map(function (c) {
+    return { id: c.id, name: c.name, says: c.body, harder: (c.harder || []).map(function (h) { return h[0]; }), ask: c.ask };
+  }));
+}
+function rules(mod) {
+  return [
+    "You are the helper inside a patient education app. The person is getting ready for a health visit about: " + MODS[mod].title + ". Help them work out what they want to say and ask, and write it down for them.",
+    "",
+    "LIBRARY (the only source of facts you may use), as JSON:",
+    libraryFor(mod),
+    "",
+    "RULES",
+    "1. Facts come only from the LIBRARY. If something is not in it, say the app does not cover that and suggest a question to ask the provider. Never add facts, numbers, doses, or brand names that are not in the LIBRARY.",
+    "2. Write at a 3rd grade reading level. Short sentences. Common words. Explain any medical word. Use 'you'.",
+    "3. Be trauma-informed. Give choices. Remind the person they can skip anything. Never ask about their past, about abuse, or about why they want something. If they share something painful, reply with one kind sentence, say they decide what to share, and do not ask more about it.",
+    "4. Do not diagnose. Do not give medicine amounts or how-to steps. Do not tell the person which option to pick. Say what the LIBRARY says and suggest they ask their provider.",
+    "5. If the person describes heavy bleeding, fever, very bad pain, or trouble breathing, tell them to contact their provider or urgent care, or call 911 in an emergency.",
+    "6. In chat, reply in at most 3 short sentences. End with at most one gentle question or choice. No lists. Do not show card ids to the person."
+  ].join("\n");
+}
+function planPrompt(mod) {
+  return [
+    "Now write the person's visit plan from the conversation so far. Reply with only a JSON object, no other text, in this shape:",
+    '{"sections":[{"title":"What I want you to know","items":[{"kind":"mine","text":"...","cites":[]}]},{"title":"What I want to ask about","items":[{"kind":"fact","text":"...","cites":["card-id"]}]},{"title":"How I want the visit to go","items":[]},{"title":"Questions I have","items":[]}]}',
+    "Rules for the plan:",
+    "- Write in first person ('I'), as the person talking to their provider. 3rd grade reading level. Each item is one or two short sentences.",
+    "- kind 'mine' means something the person said they want or feel. cites must be [].",
+    "- kind 'fact' means the item states anything from the LIBRARY (what studies found, how a choice works, rules, ages, costs). It must list the LIBRARY card ids it is based on in cites. Use only ids that exist in the LIBRARY.",
+    "- Questions to the provider can use the 'ask' lines from the LIBRARY cards.",
+    "- Include only topics the person asked about or showed interest in. Leave out empty sections. Do not include doses or amounts. Do not add facts that are not in the LIBRARY. Do not mention anything about the person's past."
+  ].join("\n");
+}
+
+function setBusy(c, v) { c.busy = v; drawChat(); }
+function errCopy(code) {
+  if (code === "not_granted") return "You chose not to let this page use Claude, so the helper is off. You can still use the Learn tab.";
+  if (code === "rate_limited") return "That was too many requests, or your Claude limit was reached. Please wait a bit and try again.";
+  if (code === "sampling_disabled" || code === "capability_disabled" || code === "not_declared") return "The helper is not available on this account. You can still use the Learn tab.";
+  if (code === "session_expired") return "Please sign in to Claude again, then try again.";
+  if (code === "refused") return "The helper could not answer that. Try asking in a different way.";
+  return "Something went wrong. Please try again.";
+}
+
+var samplePromise = null;
+function getSample() {
+  if (!samplePromise) {
+    samplePromise = (window.claude && window.claude.use ? window.claude.use("sample") : Promise.resolve(null)).catch(function () { return null; });
+  }
+  return samplePromise;
+}
+
+function pushMsg(c, role, text, cls) { c.turns.push({ role: role, text: text, cls: cls || null }); }
+function modelTurns(mod, c) {
+  var out = [{ role: "user", content: rules(mod) }];
+  var real = c.turns.filter(function (t) { return !t.cls; }).slice(-16);
+  real.forEach(function (t) { out.push({ role: t.role, content: t.text }); });
+  return out;
+}
+
+async function sendChat(mod, text) {
+  var c = S.chats[mod];
+  text = (text || "").trim();
+  if (!text || c.busy) return;
+  pushMsg(c, "user", text);
+  if (SELFHARM.test(text)) { pushMsg(c, "assistant", SELFHARM_MSG, "sys"); drawChat(); return; }
+  if (URGENT.test(text)) { pushMsg(c, "assistant", URGENT_MSG, "sys"); drawChat(); return; }
+  var sample = await getSample();
+  if (!sample) { pushMsg(c, "assistant", "The helper only works when this page is open inside Claude. You can still use the Learn tab.", "sys"); drawChat(); return; }
+  c.ctl = new AbortController();
+  c.turns.push({ role: "assistant", text: "Thinking...", cls: "wait" });
+  setBusy(c, true);
+  var idx = c.turns.length - 1;
+  try {
+    var input = modelTurns(mod, c);
+    var res = await sample(input, { cache: false, signal: c.ctl.signal, modelTier: "default", onText: function (u) { c.turns[idx] = { role: "assistant", text: u.text, cls: "stream" }; drawChat(true); } });
+    var reply = res.text.trim();
+    c.turns[idx] = { role: "assistant", text: reply, cls: null };
+    if (DOSE.test(reply)) { c.turns[idx] = { role: "assistant", text: "I can only share what is in the library, and I cannot give medicine amounts. Please ask your provider about that. I can help you write that question.", cls: null }; }
+    if (DISCLOSE.test(text)) pushMsg(c, "assistant", SUPPORT_NOTE, "sys");
+  } catch (e) {
+    if (e && e.code === "cancelled") { c.turns.splice(idx, 1); }
+    else { c.turns[idx] = { role: "assistant", text: errCopy(e && e.code), cls: "sys" }; }
+  }
+  c.busy = false; drawChat(true);
+}
+
+function checkPlan(mod, raw) {
+  var m = MODS[mod], ids = {}; m.cards.forEach(function (c) { ids[c.id] = true; });
+  var out = { sections: [], total: 0, cited: 0, removedDose: 0, flagged: 0, grade: null };
+  var allText = [];
+  (raw.sections || []).forEach(function (s) {
+    var sec = { title: String(s.title || ""), items: [] };
+    (s.items || []).forEach(function (it) {
+      var t = String(it.text || "").trim(); if (!t) return;
+      if (DOSE.test(t)) { out.removedDose++; return; }
+      var cites = Array.isArray(it.cites) ? it.cites.filter(function (x) { return typeof x === "string"; }) : [];
+      var valid = cites.filter(function (x) { return ids[x]; });
+      var kind = it.kind === "fact" ? "fact" : "mine";
+      var flagged = kind === "fact" && (valid.length === 0 || valid.length !== cites.length);
+      if (flagged) out.flagged++;
+      out.total++; if (kind === "fact" && !flagged) out.cited++;
+      sec.items.push({ text: t, kind: kind, cites: valid, flagged: flagged });
+      allText.push(t);
+    });
+    if (sec.items.length) out.sections.push(sec);
+  });
+  out.grade = readingGrade(allText.join(" "));
+  return out;
+}
+function sourcesForCards(mod, cardIds) {
+  var m = MODS[mod], seen = {}, out = [];
+  cardIds.forEach(function (id) {
+    var card = m.cards.filter(function (c) { return c.id === id; })[0]; if (!card) return;
+    var all = card.cites.slice(); (card.harder || []).forEach(function (h) { all = all.concat(h[1]); });
+    all.forEach(function (s) { if (!seen[s]) { seen[s] = 1; out.push(s); } });
+  });
+  return out;
+}
+
+async function makePlan(mod) {
+  var c = S.chats[mod];
+  if (c.busy) return;
+  var sample = await getSample();
+  if (!sample) { pushMsg(c, "assistant", "The helper only works when this page is open inside Claude.", "sys"); drawChat(); return; }
+  c.ctl = new AbortController(); c.plan = null; c.raw = null; c.planNote = "Writing your plan..."; setBusy(c, true);
+  try {
+    var input = modelTurns(mod, c);
+    input.push({ role: "user", content: planPrompt(mod) });
+    var raw = await sample.json(input, { cache: false, signal: c.ctl.signal, modelTier: "default" });
+    c.raw = raw;
+    if (!raw || !Array.isArray(raw.sections)) throw { code: "invalid_json" };
+    c.plan = checkPlan(mod, raw); c.planNote = null;
+  } catch (e) {
+    if (e && e.code === "cancelled") c.planNote = null;
+    else c.planNote = e && e.code === "invalid_json" ? "The plan did not come back in the right form. Please try again." : errCopy(e && e.code);
+  }
+  c.busy = false; drawChat(false, true);
+}
+
+var STARTERS = {
+  iud: ["I am worried about the pain", "What are my options for pain?", "I want to be able to stop", "Can I be asleep for it?"],
+  cervical: ["How often do I need this?", "Can I do the test myself?", "I am nervous about the exam", "What if my result is not normal?"]
+};
+
+function drawChat(keepScroll, scrollPlan) {
+  var m = MODS[S.mod], c = S.chats[S.mod], p = document.getElementById("panel-chat");
+  var typed = document.getElementById("msg-box"); var draft = typed ? typed.value : "";
+  var hadFocus = typed && document.activeElement === typed;
+  p.textContent = "";
+  var top = el("div", "btn-row");
+  var restart = el("button", "btn", "Start over");
+  restart.onclick = function () { if (c.ctl) c.ctl.abort(); S.chats[S.mod] = { turns: [], busy: false, plan: null, raw: null, ctl: null }; drawChat(); };
+  top.appendChild(restart);
+  p.appendChild(top);
+
+  var chat = el("div", "chat"); chat.setAttribute("aria-live", "polite");
+  chat.appendChild(el("div", "bubble bot", "Hi! I can help you get ready for your visit about " + m.title.toLowerCase() + ". You can skip anything. I will not ask about your past or why you want something. What is on your mind?"));
+  c.turns.forEach(function (t) {
+    var cls = t.role === "user" ? "bubble me" : (t.cls === "sys" ? "bubble sys" : (t.cls === "wait" ? "bubble bot wait" : "bubble bot"));
+    chat.appendChild(el("div", cls, t.text));
+  });
+  p.appendChild(chat);
+
+  if (!c.turns.length) {
+    var chips = el("div", "chips");
+    STARTERS[S.mod].forEach(function (s) { var b = el("button", "chip", s); b.onclick = function () { sendChat(S.mod, s); }; chips.appendChild(b); });
+    p.appendChild(chips);
+  }
+
+  var comp = el("div", "composer");
+  var ta = el("textarea"); ta.id = "msg-box"; ta.value = draft; ta.placeholder = "Type here. You can skip anything."; ta.setAttribute("aria-label", "Your message");
+  ta.disabled = c.busy;
+  comp.appendChild(ta);
+  var row = el("div", "btn-row");
+  var send = el("button", "btn primary", "Send"); send.disabled = c.busy;
+  send.onclick = function () { var v = ta.value; ta.value = ""; sendChat(S.mod, v); };
+  var plan = el("button", "btn", "Make my plan"); plan.disabled = c.busy || !c.turns.some(function (t) { return t.role === "user" && !t.cls; });
+  plan.onclick = function () { makePlan(S.mod); };
+  row.appendChild(send); row.appendChild(plan);
+  if (c.busy) { var stop = el("button", "btn", "Stop"); stop.onclick = function () { if (c.ctl) c.ctl.abort(); }; row.appendChild(stop); }
+  comp.appendChild(row);
+  p.appendChild(comp);
+  if (hadFocus && !c.busy) ta.focus();
+
+  if (c.planNote) p.appendChild(el("p", "demo-note", c.planNote));
+  if (c.plan) p.appendChild(planView(S.mod, c));
+
+  var al = el("div", "alert");
+  al.appendChild(el("b", "", "Need help now? ")); al.appendChild(document.createTextNode("Heavy bleeding, fever, or very bad pain: call your provider or go to urgent care. In an emergency call 911. To talk with someone: call or text 988. RAINN National Sexual Assault Hotline: 800-656-4673."));
+  p.appendChild(al);
+  p.appendChild(el("p", "demo-note", "This helper is Claude, an AI. It uses your own Claude account, and you will be asked to allow that the first time. It can only use the library on the Learn tab. It does not give medical advice. Nothing you type is saved by this page."));
+
+  if (scrollPlan) { var s = p.querySelector(".sheet"); if (s) { try { s.scrollIntoView({ block: "nearest" }); } catch (e) {} } }
+  else if (keepScroll) { var last = chat.lastElementChild; if (last) { try { last.scrollIntoView({ block: "nearest" }); } catch (e) {} } }
+}
+
+function planView(mod, c) {
+  var plan = c.plan, wrap = el("div", "stack");
+  var sheet = el("div", "sheet"); sheet.tabIndex = 0; sheet.setAttribute("contenteditable", "true"); sheet.setAttribute("aria-label", "My visit plan, editable");
+  sheet.appendChild(el("h3", "", "My visit plan: " + MODS[mod].title.toLowerCase()));
+  sheet.appendChild(el("p", "sheet-sub", "In my own words. I can change anything before I share it."));
+  var cardIds = [];
+  plan.sections.forEach(function (s) {
+    var d = el("div"); d.appendChild(el("h4", "", s.title)); var ul = el("ul");
+    s.items.forEach(function (it) {
+      var li = el("li", "", it.text);
+      if (it.cites.length) { li.appendChild(citeSpan(mod, sourcesForCards(mod, it.cites))); cardIds = cardIds.concat(it.cites); }
+      if (it.flagged) { li.appendChild(document.createTextNode(" ")); li.appendChild(el("span", "flag", "needs a source")); }
+      ul.appendChild(li);
+    });
+    d.appendChild(ul); sheet.appendChild(d);
+  });
+  wrap.appendChild(sheet);
+
+  var row = el("div", "btn-row"); var copy = el("button", "btn primary", "Copy my plan"); var msg = el("span", "demo-note", "");
+  copy.onclick = function () {
+    var text = sheet.innerText;
+    var done = function () { msg.textContent = "Copied."; };
+    var fb = function () { try { var r = document.createRange(); r.selectNodeContents(sheet); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); msg.textContent = "Selected. Use copy on your device."; } catch (e) { msg.textContent = "Select the plan to copy it."; } };
+    try { navigator.clipboard.writeText(text).then(done, fb); } catch (e) { fb(); }
+  };
+  row.appendChild(copy); row.appendChild(msg); wrap.appendChild(row);
+
+  var chk = el("div", "checks"); chk.appendChild(el("b", "", "Checked by the app, not by the model"));
+  var ul = el("ul");
+  ul.appendChild(el("li", "", plan.total + " items. " + plan.cited + " facts have a valid source."));
+  if (plan.flagged) ul.appendChild(el("li", "", plan.flagged + " item(s) are marked 'needs a source'. Do not rely on them."));
+  if (plan.removedDose) ul.appendChild(el("li", "", plan.removedDose + " item(s) were removed because they had a medicine amount."));
+  ul.appendChild(el("li", "", plan.grade === null ? "Reading level: not enough text to estimate." : "Estimated reading grade: " + plan.grade + " (aim: about 3)."));
+  chk.appendChild(ul); wrap.appendChild(chk);
+
+  var det = el("details"); det.appendChild(el("summary", "demo-note", "Show the raw model output (for testing)"));
+  var pre = el("pre", "raw"); pre.textContent = JSON.stringify(c.raw, null, 2); det.appendChild(pre); wrap.appendChild(det);
+  return wrap;
+}
+
+/* ---------- About ---------- */
+function drawAbout() {
+  var p = document.getElementById("panel-about"); p.textContent = "";
+  var head = el("div", "stack"); head.style.gap = "10px";
+  head.appendChild(el("span", "crumb", "For reviewers"));
+  head.appendChild(el("h2", "", "How it is checked"));
+  head.appendChild(el("p", "lede", "This tab is for the class. It shows what the prototype does to keep the AI helper in bounds, and where its sources are weak."));
+  p.appendChild(head);
+
+  var s1 = el("div", "stack"); s1.appendChild(el("h3", "", "Safeguards in this build"));
+  var ul = el("ul", "plain");
+  [
+    "Grounding. The helper is given only the library text and told to use nothing else. Every fact in a plan must name the library card it came from.",
+    "Source check in code. The page, not the model, checks that every cited card exists. Facts with a missing or invalid source are marked 'needs a source'.",
+    "No medicine amounts. The page removes any plan item with a dose-like number, and replaces any chat reply that has one.",
+    "Trauma-informed rules. The helper must not ask about past experiences or reasons, must give choices, and must keep replies short.",
+    "Fixed safety text. Messages about urgent symptoms or self-harm skip the model and show fixed text. Help numbers are always on the page.",
+    "Reading level. The page estimates the grade level of each plan so drift is visible.",
+    "No storage. Nothing typed is saved by this page. The model call runs on the viewer's own Claude account after they allow it."
+  ].forEach(function (t) { ul.appendChild(el("li", "", t)); });
+  s1.appendChild(ul); p.appendChild(s1);
+
+  var s2 = el("div", "stack"); s2.appendChild(el("h3", "", "Where the facts come from"));
+  s2.appendChild(el("p", "lede", "Sources are not equal. Some are old, some are drafts, and some disagree. This table is how each one was judged."));
+  ORDER.forEach(function (k) {
+    s2.appendChild(el("h3", "group-title", MODS[k].title));
+    var wrap = el("div", "scroll-x"); var t = el("table");
+    var thead = el("thead"), hr = el("tr"); ["Source", "Type", "Note"].forEach(function (h) { hr.appendChild(el("th", "", h)); }); thead.appendChild(hr); t.appendChild(thead);
+    var tb = el("tbody");
+    Object.keys(MODS[k].sources).forEach(function (sid) {
+      var s = MODS[k].sources[sid], tr = el("tr"), td = el("td");
+      var a = el("a", "", "[" + sid.replace(/^[a-z]/, "") + "] " + s.t); a.href = s.u; a.target = "_blank"; a.rel = "noopener"; a.style.color = "var(--accent)"; td.appendChild(a);
+      tr.appendChild(td); tr.appendChild(el("td", "", s.kind + (s.date ? " · " + s.date : ""))); tr.appendChild(el("td", "", s.note)); tb.appendChild(tr);
+    });
+    t.appendChild(tb); wrap.appendChild(t); s2.appendChild(wrap);
+  });
+  var n = el("div", "note"); n.appendChild(el("b", "", "A real conflict. ")); n.appendChild(document.createTextNode("For self-collected HPV tests, the January 2026 federal guideline update says to offer them for ages 30 to 65 and notes FDA approvals in 2024 and 2025. The CDC page and the 2024 task force draft say the FDA had not approved them for home use. The app follows the newest source and tells the reader that older guides may disagree."));
+  s2.appendChild(n); p.appendChild(s2);
+
+  var s3 = el("div", "stack"); s3.appendChild(el("h3", "", "What this prototype cannot do yet"));
+  var ul3 = el("ul", "plain");
+  ["No clinician has reviewed the content.", "Some sources are thin: sedation and anesthesia for IUDs rest on one state bulletin and one Australian clinic sheet.", "The reading level is estimated by a simple formula. It has not been tested with real readers.", "The helper has not been tested on a full set of tricky scenarios yet. That is the next step.", "Only two topics so far. A trauma-informed birth plan is next."].forEach(function (t) { ul3.appendChild(el("li", "", t)); });
+  s3.appendChild(ul3); p.appendChild(s3);
+}
+
+function drawAll() { drawMods(); drawLearn(); drawChat(); drawAbout(); showTab(S.tab); }
+drawAll();
+</script>
