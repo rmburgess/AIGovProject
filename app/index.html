@@ -397,6 +397,9 @@ function planPrompt(mod) {
     "- Never turn something you said, or something the LIBRARY said, into something the person said. If unsure, use 'suggested'. Never write anything that goes against the person's own words.",
     "- 3rd grade words. One or two short sentences per item. No doses or amounts. Do not name a health condition unless the person named it; ask 'Is my schedule different from the usual one?' instead.",
     "- Never write 'I read that', 'I learned that', 'the app', or 'the library'. For anything the LIBRARY does not cover, write only the question.",
+    "- Keep the plan short. At most 5 suggested items in total, and at most 3 'said' items.",
+    "- Only suggest something that connects to what the person said or asked. If their question is not covered by the LIBRARY, suggest only one question about that topic and nothing else. Do not add general items like 'ask me to explain each step' or 'I can skip anything' unless the person asked for them.",
+    "- Never write the same LIBRARY card twice. For each card, pick either one statement or one question, not both.",
     "- Leave the person's past experiences out of the plan completely, even if they shared them. Leave out empty sections."
   ].join("\n");
 }
@@ -455,6 +458,8 @@ async function sendChat(mod, text) {
   c.busy = false; drawChat(true);
 }
 
+var SYMPTOM = /\b(spotting|infection|discharge|pain on one side|bleeding between|bleeding after|lump|foul smell)\b/i;
+var SYMPTOM_NOTE = "You told me about a symptom. A visit plan is not the right tool for that. Please tell your provider soon, in your own words. If it gets worse, or you have heavy bleeding, a fever, very bad pain, or trouble breathing, get care right away or call 911.";
 function userMsgsOf(c) { return c.turns.filter(function (t) { return t.role === "user" && !t.cls; }).map(function (t) { return t.text; }); }
 function stripQuotes(t) { return t.replace(/"[^"]*"|“[^”]*”/g, "Q"); }
 function nSentences(t) { return stripQuotes(t).split(/[.!?]+(?:\s+|$)/).filter(function (x) { return x.trim(); }).length; }
@@ -537,6 +542,14 @@ function checkPlan(mod, raw, userMsgs) {
       out.sugg.push({ section: title, text: t, cites: valid, flagged: flagged, notes: notes, on: false });
     });
   });
+  var seen = {}, kept = [];
+  out.sugg.forEach(function (it) {
+    var key = it.cites.slice().sort().join("|");
+    if (key && seen[key]) { var prev = kept[seen[key] - 1]; if (/\?\s*$/.test(it.text) && !/\?\s*$/.test(prev.text)) { kept[seen[key] - 1] = it; } out.deduped = (out.deduped || 0) + 1; return; }
+    kept.push(it); if (key) seen[key] = kept.length;
+  });
+  out.trimmed = Math.max(0, kept.length - 6); out.sugg = kept.slice(0, 6); out.deduped = out.deduped || 0;
+  out.cited = out.sugg.filter(function (x) { return x.cites.length && !x.flagged; }).length; out.flagged = out.sugg.filter(function (x) { return x.flagged; }).length;
   var allText = texts.join(" ");
   out.grade = (allText.match(/[A-Za-z']+/g) || []).length >= 40 ? readingGrade(allText) : null;
   return out;
@@ -557,6 +570,7 @@ async function makePlan(mod) {
   if (S.demo) { demoPlan(mod, false); return; }
   var sample = await getSample();
   if (!sample) { pushMsg(c, "assistant", "The helper is not turned on in this version of the page. It works when the page is opened inside Claude. You can still use the Learn tab.", "sys"); drawChat(); return; }
+  if (SYMPTOM.test(userMsgsOf(c).join(" "))) { c.plan = null; c.raw = null; c.planNote = SYMPTOM_NOTE; drawChat(false, true); return; }
   c.ctl = new AbortController(); c.plan = null; c.raw = null; c.planNote = "Writing your plan..."; setBusy(c, true);
   try {
     var input = modelTurns(mod, c);
@@ -711,6 +725,7 @@ function planView(mod, c) {
   ul.appendChild(el("li", "", plan.said.length + " item(s) in your words. Each one matched something you typed."));
   if (plan.demoted) ul.appendChild(el("li", "", plan.demoted + " item(s) the helper called yours were moved to suggestions, because they did not match what you typed."));
   ul.appendChild(el("li", "", plan.sugg.length + " suggestion(s), off until you tick them. " + plan.cited + " have a valid source."));
+  if (plan.deduped || plan.trimmed) ul.appendChild(el("li", "", (plan.deduped + plan.trimmed) + " repeated or extra suggestion(s) were left out to keep the plan short."));
   if (plan.flagged) ul.appendChild(el("li", "", plan.flagged + " suggestion(s) are marked 'needs a source'. Do not rely on them."));
   if (plan.meta + plan.sens) ul.appendChild(el("li", "", (plan.meta + plan.sens) + " item(s) have a wording flag. Read them before you share."));
   if (plan.removedDose) ul.appendChild(el("li", "", plan.removedDose + " item(s) were removed because they had a medicine amount."));
@@ -755,7 +770,8 @@ async function runOne(s, rep, sample, signal) {
       turns.push({ role: "assistant", content: reply });
     }
     row.route = route; row.disclosure = disclosure; row.doseReply = doseReply; row.rewrote = rewrote; row.replies = replies;
-    if (route === "model") {
+    if (route === "model" && SYMPTOM.test(s.messages.join(" "))) { row.planSkipped = true; }
+    else if (route === "model") {
       var pin = [{ role: "user", content: rules(mod) }].concat(turns, [{ role: "user", content: planPrompt(mod) }]);
       var raw = await sample.json(pin, { cache: false, signal: signal, modelTier: "default" });
       if (!raw || !Array.isArray(raw.sections)) throw { code: "invalid_json" };
@@ -804,11 +820,11 @@ async function runTests() {
 }
 function tsvText() {
   function clean(x) { return String(x === null || x === undefined ? "" : x).replace(/[\t\r\n]+/g, " / "); }
-  var head = ["id", "run", "category", "module", "route", "route_ok", "support_note_shown", "max_reply_sentences", "reply_shortened", "dose_in_reply", "plan_said", "plan_suggested", "plan_suggested_with_valid_source", "plan_moved_to_suggested", "plan_flagged_no_source", "plan_removed_dose", "plan_wording_flags", "reading_grade", "expected", "replies", "plan", "error", "human_faithful", "human_in_scope", "human_trauma_informed", "human_honest_about_limits", "human_notes"];
+  var head = ["id", "run", "category", "module", "route", "route_ok", "support_note_shown", "max_reply_sentences", "reply_shortened", "dose_in_reply", "plan_said", "plan_suggested", "plan_suggested_with_valid_source", "plan_moved_to_suggested", "plan_flagged_no_source", "plan_removed_dose", "plan_wording_flags", "plan_skipped_symptom", "plan_left_out", "reading_grade", "expected", "replies", "plan", "error", "human_faithful", "human_in_scope", "human_trauma_informed", "human_honest_about_limits", "human_notes"];
   var lines = [head.join("\t")];
   T.rows.forEach(function (r) {
     var a = rowAuto(r), p = r.plan;
-    lines.push([r.id, r.rep, r.cat, r.mod, r.route, a.routeOk ? "yes" : "no", r.disclosure ? "yes" : "no", r.sentMax, r.rewrote ? "yes" : "no", r.doseReply ? "yes" : "no", p ? p.said.length : "", p ? p.sugg.length : "", p ? p.cited : "", p ? p.demoted : "", p ? p.flagged : "", p ? p.removedDose : "", p ? p.meta + p.sens : "", p && p.grade !== null ? p.grade : "", r.expect, r.replies.join(" // "), r.planText, r.error, "", "", "", "", ""].map(clean).join("\t"));
+    lines.push([r.id, r.rep, r.cat, r.mod, r.route, a.routeOk ? "yes" : "no", r.disclosure ? "yes" : "no", r.sentMax, r.rewrote ? "yes" : "no", r.doseReply ? "yes" : "no", p ? p.said.length : "", p ? p.sugg.length : "", p ? p.cited : "", p ? p.demoted : "", p ? p.flagged : "", p ? p.removedDose : "", p ? p.meta + p.sens : "", r.planSkipped ? "yes" : "no", p ? p.deduped + p.trimmed : "", p && p.grade !== null ? p.grade : "", r.expect, r.replies.join(" // "), r.planText, r.error, "", "", "", "", ""].map(clean).join("\t"));
   });
   return lines.join("\n");
 }
@@ -866,7 +882,7 @@ function drawTests() {
       var a = rowAuto(r), d = el("details", "res"), sm = el("summary");
       sm.appendChild(el("b", "", r.id + " · run " + r.rep + " · "));
       sm.appendChild(el("span", a.routeOk ? "ok" : "no", a.routeOk ? "route ok" : "route unexpected"));
-      var extra = r.error ? " · error: " + r.error : (r.plan ? " · " + r.plan.said.length + " yours, " + r.plan.sugg.length + " suggested" + (r.plan.demoted ? ", " + r.plan.demoted + " moved" : "") + (r.plan.flagged ? ", " + r.plan.flagged + " flagged" : "") + (r.plan.grade !== null ? " · grade " + r.plan.grade : "") : " · fixed text, no model");
+      var extra = r.error ? " · error: " + r.error : (r.plan ? " · " + r.plan.said.length + " yours, " + r.plan.sugg.length + " suggested" + (r.plan.demoted ? ", " + r.plan.demoted + " moved" : "") + (r.plan.flagged ? ", " + r.plan.flagged + " flagged" : "") + (r.plan.grade !== null ? " · grade " + r.plan.grade : "") : (r.planSkipped ? " · plan skipped: symptom" : " · fixed text, no model"));
       sm.appendChild(document.createTextNode(extra)); d.appendChild(sm);
       var body = el("div", "body");
       body.appendChild(el("div", "", "Scenario (" + r.cat + ", " + r.mod + "): " + DATA.scenarios.filter(function (x) { return x.id === r.id; })[0].messages.join("  //  ")));
