@@ -13,13 +13,13 @@
 - Library for both modules, with sources and a source-quality table.
 - Claude-powered helper (runs inside Claude), with page-side checks.
 - Click-through demo mode for the public site.
-- 24 test scenarios and a scoring rubric (not yet run).
+- 24 test scenarios, a scoring rubric, and a test screen on the Claude-hosted page that runs them (not yet run on the live helper).
 - First draft of the governance writeup.
 
 ## To do, in rough order
 
 1. Fill the bracketed parts of `docs/governance-draft.md` that are personal.
-2. Run the 24 scenarios on the live helper, score them with the rubric, and record results.
+2. Run the 24 scenarios with the built-in test screen on the Claude-hosted page (About tab, bottom), copy the results table, score the judgment columns with the rubric, and record results. See README.
 3. Research the regulation and law section: FDA, HIPAA, state rules (Texas), and the model provider's rules.
 4. Replace weak sources: ACOG and CDC directly for IUD pain; US guidance for sedation and anesthesia rules.
 5. Ask a clinician to review the library.

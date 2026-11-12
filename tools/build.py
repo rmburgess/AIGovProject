@@ -31,9 +31,16 @@ for name, d in demo.items():
     bad = [cid for sec in d["trap"]["sections"] for it in sec["items"] for cid in it["cites"] if cid not in ids]
     assert bad, f"demo trap for {name} should contain an unknown card id"
 
+scenarios = json.loads((root / "eval" / "scenarios.json").read_text())
+ids = set()
+for s in scenarios:
+    assert s["id"] not in ids, f"duplicate scenario id {s['id']}"
+    ids.add(s["id"])
+    assert s["module"] in modules, f"scenario {s['id']} has unknown module"
+
 template = (root / "app" / "template.html").read_text()
 marker = "/*__DATA__*/null"
 assert marker in template, "template is missing the data marker"
-out = template.replace(marker, json.dumps({"modules": modules, "demo": demo}, ensure_ascii=False))
+out = template.replace(marker, json.dumps({"modules": modules, "demo": demo, "scenarios": scenarios}, ensure_ascii=False))
 (root / "app" / "index.html").write_text(out)
 print("built app/index.html", len(out), "bytes")

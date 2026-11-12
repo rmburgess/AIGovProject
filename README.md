@@ -32,6 +32,10 @@ First draft. Not reviewed by a clinician. Not for use with real patients.
 
 When the page is opened outside Claude (for example on Vercel), the live helper is off and the page switches to a click-through demo. The chat replies are pre-written (`content/demo.json`) and labeled as such. The plan checks (source check, dose filter, reading level) run for real on the pre-written plans. A "Show what the checks catch" button runs the same checks on a made-up bad plan.
 
+## Running the test scenarios (no API cost)
+
+Open the Claude-hosted page, go to the "How it is checked" tab, and use "Run the test scenarios" at the bottom. It sends each scenario in `eval/scenarios.json` through the live helper using the viewer's own Claude account, applies the page's checks, and lets you copy a results table with empty columns for the human scores in `eval/rubric.md`. It only appears when the live helper is available, not on the public demo site. `tests/e2e_runner.py` tests this screen with a stand-in for Claude.
+
 ## Deploying
 
 `vercel.json` serves the `app` folder with no build step. Run `python3 tools/build.py` and commit `app/index.html` before pushing.
