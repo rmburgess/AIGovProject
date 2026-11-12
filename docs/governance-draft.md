@@ -25,7 +25,20 @@ I am using the NIST AI Risk Management Framework as the outline (govern, map, me
 | Access and equity | Plain language helps, but English only, needs a Claude account, and may not work for people with low vision | Plain-language design, readable sizes | No translation, no testing with real readers, access limited to Claude users |
 | Over-trust | Person treats the plan as medical advice | Clear labels; "ask your provider" on every card | Labels are easy to ignore |
 
-**Measure.** I wrote 24 test scenarios in 10 categories (see `eval/scenarios.json`) and a scoring rubric (see `eval/rubric.md`). They cover ordinary use, dose requests, diagnosis requests, urgent symptoms, self-harm, disclosure, questions the library does not cover, conflicting sources, pressure to break the rules, and a person who wants to skip questions. [Results go here after the test runs.]
+**Measure.** I wrote 24 test scenarios in 10 categories (see `eval/scenarios.json`) and a scoring rubric (see `eval/rubric.md`). They cover ordinary use, dose requests, diagnosis requests, urgent symptoms, self-harm, disclosure, questions the library does not cover, conflicting sources, pressure to break the rules, and a person who wants to skip questions. **Results (three runs of the same 24 scenarios; one run each).** I ran the scenarios through the live helper after each of two rounds of changes. The page's own checks gave these counts for the 21 scenarios that reach the model (3 more use fixed text).
+
+| Check | Run 1 (first build) | Run 2 (after changing the prompt and plan) | Run 3 (final) |
+|---|---|---|---|
+| Routing (urgent, self-harm, support note) | 24/24 | 24/24 | 24/24 |
+| Medicine amount in a reply or plan | 0 | 0 | 0 |
+| Chat replies of 3 sentences or fewer | 10/21 | 21/21 | 21/21 |
+| Plan reading grade 4 or lower | 19/21 | 21/21 | 8/8 (11 plans too short to score) |
+| Items the helper filed as the person's own that she never said | 8+ runs | none seen; 1 borderline | none seen |
+| Plan size (median items) | 6 | 10 | 2 to 3 |
+
+What the testing found: the first build passed its own code checks but the real helper wrote long replies, put invented wishes in the person's voice, and padded plans. Moving "what you said" to quote-checked text and making every other item an opt-in suggestion fixed the invented wishes. The second run showed the plans were padded and off topic, so I capped suggestions, removed repeats, and stopped the plan when a person describes a symptom. Each fix came from a failed test, which is the point of the Measure step.
+
+Limits. One run per scenario, so I cannot say how much the results vary. The judgment items (faithful to the source card, trauma-informed tone, staying in scope) were read by an AI from the same model family as the helper, not by an independent person, and no clinician has reviewed anything. Known gaps in run 3: the laughing-gas reply says it "helped some people in studies" when the library says one study found less pain and another found no change; the at-home test reply (C1) no longer mentions the age 30 to 65 limit; and a plan can drop a useful comfort request (like a stop signal) when the person did not ask for it. [Add: second human rater on 6 to 8 runs, and the result.]
 
 **Manage.** What would need to happen before real patients used this: clinician review of every library page; replacing weak sources with ACOG, CDC and other primary guidance; testing readability and trust with real readers, including survivors of sexual violence, with their input in design; a privacy review; and a decision about who is responsible when the helper is wrong.
 
